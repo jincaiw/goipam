@@ -5,15 +5,11 @@ import { useAuthStore } from '@/stores/auth'
 // Layout
 import MainLayout from '@/layouts/MainLayout.vue'
 
-// Views
-import LoginView from '@/views/auth/LoginView.vue'
-import DashboardView from '@/views/dashboard/DashboardView.vue'
-
 const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'login',
-    component: LoginView,
+    component: () => import('@/views/auth/LoginView.vue'),
     meta: { requiresAuth: false },
   },
   {
@@ -25,7 +21,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'dashboard',
         name: 'dashboard',
-        component: DashboardView,
+        component: () => import('@/views/dashboard/DashboardView.vue'),
         meta: { title: 'Dashboard', icon: 'SpeedometerOutline' },
       },
       {
