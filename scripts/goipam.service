@@ -1,0 +1,18 @@
+[Unit]
+Description=GoIPAM - IP Address Management
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=goipam
+Group=goipam
+WorkingDirectory=/opt/goipam
+EnvironmentFile=/etc/goipam/goipam.env
+ExecStart=/opt/goipam/goipam --config /opt/goipam/config.yaml
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

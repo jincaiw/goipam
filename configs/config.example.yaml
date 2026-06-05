@@ -1,0 +1,22 @@
+server:
+  listen: "0.0.0.0:5050"
+  public_url: "http://localhost:5050"
+
+database:
+  driver: "sqlite"
+  dsn: "./data/goipam.db"
+
+security:
+  jwt_secret: "change-me-in-production"
+  access_token_ttl: "30m"
+  refresh_token_ttl: "168h"
+
+scan:
+  enabled: true
+  max_concurrency: 128
+  timeout: "1s"
+  schedule: "0 */6 * * *"
+
+log:
+  level: "info"
+  format: "json"

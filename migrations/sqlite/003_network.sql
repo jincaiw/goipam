@@ -1,0 +1,128 @@
+-- +goose Up
+CREATE TABLE IF NOT EXISTS l2_domains (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(128) NOT NULL UNIQUE,
+    description TEXT NOT NULL DEFAULT '',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS vlans (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    l2_domain_id INTEGER NULL,
+    vlan_id INTEGER NOT NULL,
+    name VARCHAR(128) NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (l2_domain_id) REFERENCES l2_domains(id) ON DELETE SET NULL,
+    UNIQUE (l2_domain_id, vlan_id)
+);
+
+CREATE INDEX idx_vlans_domain ON vlans(l2_domain_id);
+
+CREATE TABLE IF NOT EXISTS vrfs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(128) NOT NULL UNIQUE,
+    rd VARCHAR(128) NOT NULL DEFAULT '',
+    description TEXT NOT NULL DEFAULT '',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS device_types (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(128) NOT NULL UNIQUE,
+    icon VARCHAR(64) NOT NULL DEFAULT '',
+    description TEXT NOT NULL DEFAULT '',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS devices (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(128) NOT NULL UNIQUE,
+    hostname VARCHAR(255) NOT NULL DEFAULT '',
+    mgmt_ip VARCHAR(64) NOT NULL DEFAULT '',
+    type_id INTEGER NULL,
+    location_id INTEGER NULL,
+    rack_id INTEGER NULL,
+    rack_start_u INTEGER NULL,
+    rack_size_u INTEGER NULL,
+    manufacturer VARCHAR(128) NOT NULL DEFAULT '',
+    model VARCHAR(128) NOT NULL DEFAULT '',
+    serial_number VARCHAR(128) NOT NULL DEFAULT '',
+    description TEXT NOT NULL DEFAULT '',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (type_id) REFERENCES device_types(id) ON DELETE SET NULL,
+    FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE SET NULL,
+    FOREIGN KEY (rack_id) REFERENCES racks(id) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_devices_type ON devices(type_id);
+CREATE INDEX idx_devices_location ON devices(location_id);
+CREATE INDEX idx_devices_rack ON devices(rack_id);
+
+CREATE TABLE IF NOT EXISTS locations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(128) NOT NULL UNIQUE,
+    address VARCHAR(255) NOT NULL DEFAULT '',
+    room VARCHAR(128) NOT NULL DEFAULT '',
+    row_name VARCHAR(64) NOT NULL DEFAULT '',
+    description TEXT NOT NULL DEFAULT '',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS racks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    location_id INTEGER NOT NULL,
+    name VARCHAR(128) NOT NULL,
+    size_u INTEGER NOT NULL DEFAULT 42,
+    row_name VARCHAR(64) NOT NULL DEFAULT '',
+    position VARCHAR(64) NOT NULL DEFAULT '',
+    direction VARCHAR(16) NOT NULL DEFAULT 'top_down',
+    description TEXT NOT NULL DEFAULT '',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE CASCADE,
+    UNIQUE (location_id, name)
+);
+
+CREATE INDEX idx_racks_location ON racks(location_id);
+
+CREATE TABLE IF NOT EXISTS nats (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(128) NOT NULL DEFAULT '',
+    type VARCHAR(32) NOT NULL DEFAULT 'static',
+    inside_address_id INTEGER NULL,
+    outside_address_id INTEGER NULL,
+    inside_ip VARCHAR(64) NOT NULL DEFAULT '',
+    outside_ip VARCHAR(64) NOT NULL DEFAULT '',
+    inside_port INTEGER NULL,
+    outside_port INTEGER NULL,
+    protocol VARCHAR(16) NOT NULL DEFAULT 'any',
+    device_id INTEGER NULL,
+    description TEXT NOT NULL DEFAULT '',
+    enabled BOOLEAN NOT NULL DEFAULT 1,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (inside_address_id) REFERENCES addresses(id) ON DELETE SET NULL,
+    FOREIGN KEY (outside_address_id) REFERENCES addresses(id) ON DELETE SET NULL,
+    FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_nats_inside ON nats(inside_address_id);
+CREATE INDEX idx_nats_outside ON nats(outside_address_id);
+CREATE INDEX idx_nats_device ON nats(device_id);
+
+-- +goose Down
+DROP TABLE IF EXISTS nats;
+DROP TABLE IF EXISTS racks;
+DROP TABLE IF EXISTS locations;
+DROP TABLE IF EXISTS devices;
+DROP TABLE IF EXISTS device_types;
+DROP TABLE IF EXISTS vrfs;
+DROP TABLE IF EXISTS vlans;
+DROP TABLE IF EXISTS l2_domains;

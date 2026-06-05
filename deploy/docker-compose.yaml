@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  goipam:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    ports:
+      - "5050:5050"
+    volumes:
+      - goipam-data:/app/data
+    environment:
+      - GOIPAM_ENV=production
+      - GOIPAM_JWT_SECRET=${GOIPAM_JWT_SECRET:?set GOIPAM_JWT_SECRET}
+      - GOIPAM_ADMIN_PASSWORD=${GOIPAM_ADMIN_PASSWORD:?set GOIPAM_ADMIN_PASSWORD}
+    restart: unless-stopped
+
+  goipam-mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: goipam
+      MYSQL_DATABASE: goipam
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    profiles:
+      - mysql
+
+volumes:
+  goipam-data:
+  mysql-data:
